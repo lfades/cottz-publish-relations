@@ -125,8 +125,8 @@ to use the following methods you should use `Meteor.publishRelations` instead of
 publishes a cursor, `collection` is not required
 * **collection** is the collection where the cursor will be sent. if not sent, is the default cursor collection name
 * **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
-* * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
-*  you can send `callbacks` in the second parameter
+* If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
+* you can send `callbacks` in the second parameter
 
 ### this.observe / this.observeChanges (cursor, callbacks)
 observe or observe changes in a cursor without sending anything to the client, callbacks are the same as those used by meteor
@@ -144,15 +144,9 @@ page within an array without re run the publication or callback
 * **infinite** if true the above values are not removed when the paging is increased
 * **Meteor.call('changePagination', _id, field, skip)** change the pagination of the document with that `id` and `field`. skip is the number of values to skip
 
-### this.group (callback, field, options)
-returns an array of elements with all documents in the cursor. When there is a change it will update the element change in the resulting array and send it back to the document
-* **callback** receive (`doc`, `atIndex`) when is added and (`doc`, `atIndex`, `oldDoc`) when is changed
-* **field** is the field in the main document that has the array
-* **options (not required)** is an object like this: `{sort: array, sortField: '_id'}` implements changes based on the position within the `sort`. `sort` is an array of values and `sortField` is the field of the document where they are, by default is the _id
-
 ## Important
 * all cursors returns an object with the stop() method except for changeParentDoc, group and paginate
 * all cursors are stopped when the publication stop
 * when the parent cursor is stopped or a document with cursors is removed all related cursors are stopped
-* `group` use observe with absolute position information (addedAt, changedAt, removedAt), if possible try using only `cursor` to maintain performance
+* all cursors use basic observeChanges as meteor does by default, performance does not come down
 * if when the callback is re-executes not called again some method (within an If for example), the method continues to run normally, if you re-call method (because the query is now different) the previous method is replaced with the new

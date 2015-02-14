@@ -91,51 +91,6 @@ CursorMethods.prototype.changeParentDoc = function (cursor, callbacks, onRemoved
 
 	return result;
 };
-// I'm thinking of deleting this method, I do not find great usability
-CursorMethods.prototype.group = function (cursor, callbacks, field, options) {
-	var sub = this.sub,
-		_id = this._id,
-		collection = this.collection,
-		result = [];
-
-	if (!_id) return;
-
-	if (options) {
-		var sort = options.sort,
-			sortField = options.sortField;
-	}
-	callbacks = this._getCallbacks(callbacks);
-	
-	this.handler.add(cursor._getCollectionName(), cursor.observe({
-		addedAt: function (doc, atIndex) {
-			if (sort) {
-				atIndex = sort.indexOf(doc[sortField || '_id']);
-				result[atIndex] = callbacks.added(doc, atIndex);
-			} else
-				result.push(callbacks.added(doc, atIndex));
-		},
-		changedAt: function (doc, oldDoc, atIndex) {
-			if (sort)
-				atIndex = sort.indexOf(doc[sortField || '_id']);
-
-			var changes = callbacks.changed(doc, atIndex, oldDoc),
-				changesObj = {};
-
-			result[atIndex] = changes;
-			changesObj[field] = result;
-
-			sub.changed(collection, _id, changesObj);
-		},
-		removedAt: function (oldDoc, atIndex) {
-			var cb = callbacks.removed;
-			if (cb)
-				sub.changed(collection, _id, cb(oldDoc, atIndex));
-		}
-	}));
-
-	return result;
-};
-
 // designed to paginate a list, works in conjunction with the methods
 // do not call back to the main callback, only the array is changed in the collection
 CursorMethods.prototype.paginate = function (fieldData, limit, infinite) {
