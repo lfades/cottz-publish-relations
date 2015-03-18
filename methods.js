@@ -5,6 +5,12 @@ Meteor.methods({
 		check(skip, Number);
 
 		var crossbar = DDPServer._InvalidationCrossbar;
-		crossbar.fire({connection: this.connection.id, _id: _id, field: field, skip: skip});
+		crossbar.fire({
+			collection: 'paginations',
+			connection: this.connection.id,
+			_id: _id,
+			field: field,
+			skip: skip
+		});
 	}
 });

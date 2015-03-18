@@ -108,7 +108,12 @@ CursorMethods.prototype.paginate = function (fieldData, limit, infinite) {
 
 	fieldData[field] = copy.slice(0, limit);
 
-	var listener = crossbar.listen({connection: connectionId, _id: _id, field: field}, function (data) {
+	var listener = crossbar.listen({
+		collection: 'paginations',
+		connection: connectionId,
+		_id: _id,
+		field: field
+	}, function (data) {
 		if (connectionId == data.connection) {
 			var skip = data.skip;
 
