@@ -22,14 +22,6 @@ Assuming we have the following collections
   interests: ['writing', 'reading', 'others']
 }
 
-// Reviews
-{
-  _id: 'someReviewId',
-  authorId: 'someAuthorId',
-  book: 'meteor for pros',
-  text: 'this book is not better than mine'
-}
-
 // Books
 {
   _id: 'someBookId',
@@ -76,25 +68,6 @@ Meteor.publishRelations('author', function (authorId) {
   });
 });
 ```
-I want to include the reviews of the author within this
-```js
-Meteor.publishRelations('author', function (authorId) {
-  this.cursor(Authors.find(authorId), function (id, doc) {
-    this.cursor(Books.find({authorId: id}), function (id, doc) {
-      this.cursor(Comments.find({bookId: id}));
-    });
-    
-    doc.profile = this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
-      return profile;
-    });
-    
-    doc.reviews = this.group(Reviews.find({authorId: id}), function (doc, index) {
-        return doc;
-    }, 'reviews');
-  });
-});
-// doc.reviews = [{data}, {data}]
-```
 To finish I want to show only some interests of the author
 ```js
 Meteor.publish('author', function (authorId) {
@@ -106,10 +79,6 @@ Meteor.publish('author', function (authorId) {
     doc.profile = this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
       return profile;
     });
-    
-    doc.reviews = this.group(Reviews.find({authorId: id}), function (doc, index) {
-        return doc;
-    }, 'reviews');
     
     doc.interests = this.paginate({interests: doc.interests}, 5);
   });

@@ -9,6 +9,6 @@ Meteor.publishRelations = function (name, callback) {
 			handler.stop();
 		});
 
-		return cb || this.ready();
+		return cb || (!this._ready && this.ready());
 	});
 };

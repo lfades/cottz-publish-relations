@@ -1,7 +1,7 @@
 Package.describe({
   name: 'cottz:publish-relations',
   summary: "Edit your documents before sending without too much stress",
-  version: "1.2.0",
+  version: "1.2.1",
   git: "https://github.com/Goluis/cottz-publish-relations"
 });
 
@@ -20,7 +20,7 @@ Package.on_test(function (api) {
 });
 
 function configure (api) {
-  api.versionsFrom('1.0');
+  api.versionsFrom('1.0.4.2');
 
   api.use('underscore', 'server');
 
