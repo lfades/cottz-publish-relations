@@ -20,7 +20,7 @@ Package.on_test(function (api) {
 });
 
 function configure (api) {
-  api.versionsFrom('1.0.4.2');
+  api.versionsFrom('1.0.5');
 
   api.use('underscore', 'server');
 

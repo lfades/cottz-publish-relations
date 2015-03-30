@@ -79,12 +79,12 @@ CursorMethods.prototype.changeParentDoc = function (cursor, callbacks, onRemoved
 		},
 		changed: function (id, doc) {
 			var changes = callbacks.changed(id, doc);
-			if(changes)
+			if (changes)
 				sub.changed(collection, _id, changes);
 		},
 		removed: function (id) {
 			var changes = callbacks.removed(id);
-			if(changes)
+			if (changes)
 				sub.changed(collection, _id, changes);
 		}
 	}));
