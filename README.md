@@ -119,3 +119,27 @@ page within an array without re run the publication or callback
 * when the parent cursor is stopped or a document with cursors is removed all related cursors are stopped
 * all cursors use basic observeChanges as meteor does by default, performance does not come down
 * if when the callback is re-executes not called again some method (within an If for example), the method continues to run normally, if you re-call method (because the query is now different) the previous method is replaced with the new
+```js
+// For example we have a collection users and each user has a roomId
+// we want to publish the users and their rooms
+this.cursor(Meteor.users.find(), function (id, doc) {
+	// this function is executed on added/changed
+	this.cursor(Rooms.find({_id: doc.roomId}));
+});
+// the previous cursor is good but has a bug, when an user is changed we can't make sure 
+// that the roomId is changed and 'doc' only comes with the changes, so roomId is undefined
+// and our Rooms cursor no longer work anymore
+
+// to fix the above problem we need to check the roomId
+this.cursor(Meteor.users.find(), function (id, doc) {
+	if (doc.roomId)
+		this.cursor(Rooms.find({_id: doc.roomId}));
+});
+// or we can use an object with 'added' instead of a function
+// this way is better than the above if we are sure that roomId is not going to change
+this.cursor(Meteor.users.find(), {
+	added: function (id, doc) {
+		this.cursor(Rooms.find({_id: doc.roomId}));
+	}
+});
+```
