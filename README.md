@@ -95,7 +95,6 @@ publishes a cursor, `collection` is not required
 * **collection** is the collection where the cursor will be sent. if not sent, is the default cursor collection name
 * **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
 * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
-* you can send `callbacks` in the second parameter
 
 ### this.observe / this.observeChanges (cursor, callbacks)
 observe or observe changes in a cursor without sending anything to the client, callbacks are the same as those used by meteor
@@ -114,7 +113,7 @@ page within an array without re run the publication or callback
 * **Meteor.call('changePagination', _id, field, skip)** change the pagination of the document with that `id` and `field`. skip is the number of values to skip
 
 ## Important
-* all cursors returns an object with the stop() method except for changeParentDoc, group and paginate
+* all cursors returns an object with the stop() method except for changeParentDoc and paginate
 * all cursors are stopped when the publication stop
 * when the parent cursor is stopped or a document with cursors is removed all related cursors are stopped
 * all cursors use basic observeChanges as meteor does by default, performance does not come down
