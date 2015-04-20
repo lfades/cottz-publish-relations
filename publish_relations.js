@@ -8,7 +8,8 @@ Meteor.publishRelations = function (name, callback) {
 		this.onStop(function () {
 			handler.stop();
 		});
-
-		return cb || (!this._ready && this.ready());
+		// kadira show me alerts when I use this return (but works well)
+		// return cb || (!this._ready && this.ready());
+		return cb;
 	});
 };

@@ -1,11 +1,11 @@
 Package.describe({
   name: 'cottz:publish-relations',
   summary: "Edit your documents before sending without too much stress",
-  version: "1.2.2",
+  version: "1.5.0",
   git: "https://github.com/Goluis/cottz-publish-relations"
 });
 
-Package.onUse(function(api) {
+Package.onUse(function (api) {
   configure(api);
 });
 
@@ -20,13 +20,15 @@ Package.on_test(function (api) {
 });
 
 function configure (api) {
-  api.versionsFrom('1.0.5');
+  api.versionsFrom('1.1.0.2');
 
   api.use('underscore', 'server');
 
-  api.addFiles('publish_relations.js', 'server');
-  api.addFiles('cursor_methods.js', 'server');
-  api.addFiles('cursor_utils.js', 'server');
-  api.addFiles('handler_controller.js', 'server');
-  api.addFiles('methods.js', 'server');
+  api.addFiles([
+    'publish_relations.js',
+    'cursor_methods.js',
+    'cursor_utils.js',
+    'handler_controller.js',
+    'methods.js'
+  ], 'server');
 };

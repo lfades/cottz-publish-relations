@@ -42,6 +42,8 @@ Meteor.publishRelations('author', function (authorId) {
   this.cursor(Authors.find(authorId), function (id, doc) {
     this.cursor(Books.find({authorId: id}));
   });
+  
+  return this.ready();
 });
 ```
 and comments of the books
@@ -52,6 +54,8 @@ Meteor.publishRelations('author', function (authorId) {
       this.cursor(Comments.find({bookId: id}));
     });
   });
+  
+  return this.ready();
 });
 ```
 I also want to bring the profile of the author but within the author not apart
@@ -66,6 +70,8 @@ Meteor.publishRelations('author', function (authorId) {
       return profile;
     });
   });
+  
+  return this.ready();
 });
 ```
 To finish I want to show only some interests of the author
@@ -82,6 +88,8 @@ Meteor.publish('author', function (authorId) {
     
     doc.interests = this.paginate({interests: doc.interests}, 5);
   });
+  
+  return this.ready();
 });
 // Client
 // skip 5 interest and show the next 5
@@ -112,18 +120,18 @@ page within an array without re run the publication or callback
 * **infinite** if true the above values are not removed when the paging is increased
 * **Meteor.call('changePagination', _id, field, skip)** change the pagination of the document with that `id` and `field`. skip is the number of values to skip
 
-## Important
+## Performance Notes
 * all cursors returns an object with the stop() method except for changeParentDoc and paginate
 * all cursors are stopped when the publication stop
 * when the parent cursor is stopped or a document with cursors is removed all related cursors are stopped
 * all cursors use basic observeChanges as meteor does by default, performance does not come down
-* if when the callback is re-executes not called again some method (within an If for example), the method continues to run normally, if you re-call method (because the query is now different) the previous method is replaced with the new
+* if when the callback is re-executes not called again some method (within an If for example), the method continues to run normally, if you re-call method (because the selector is now different) the previous method is replaced with the new
 ```js
 // For example we have a collection users and each user has a roomId
 // we want to publish the users and their rooms
 this.cursor(Meteor.users.find(), function (id, doc) {
-	// this function is executed on added/changed
-	this.cursor(Rooms.find({_id: doc.roomId}));
+  // this function is executed on added/changed
+  this.cursor(Rooms.find({_id: doc.roomId}));
 });
 // the previous cursor is good but has a bug, when an user is changed we can't make sure 
 // that the roomId is changed and 'doc' only comes with the changes, so roomId is undefined
@@ -131,14 +139,32 @@ this.cursor(Meteor.users.find(), function (id, doc) {
 
 // to fix the above problem we need to check the roomId
 this.cursor(Meteor.users.find(), function (id, doc) {
-	if (doc.roomId)
-		this.cursor(Rooms.find({_id: doc.roomId}));
+  if (doc.roomId)
+    this.cursor(Rooms.find({_id: doc.roomId}));
 });
 // or we can use an object with 'added' instead of a function
 // this way is better than the above if we are sure that roomId is not going to change
 this.cursor(Meteor.users.find(), {
-	added: function (id, doc) {
-		this.cursor(Rooms.find({_id: doc.roomId}));
-	}
+  added: function (id, doc) {
+    this.cursor(Rooms.find({_id: doc.roomId}));
+  }
 });
+```
+* when a document is changed and you call a method again with the same selector when the document was added it doesn't run again
+```js
+this.cursor(Authors.find(authorId), function (id, doc) {
+  // the books cursor is executed only when the author is added, because each time that the author
+  // is changed the authorId will be ever the same
+  this.cursor(Books.find({authorId: id}));
+  
+  /* more logic */
+});
+```
+* publications are completed as usual
+```js
+// you can do this to finish writing your publication
+this.ready();
+return this.ready();
+return [];
+return [cursor1, cursor2, cursor3];
 ```

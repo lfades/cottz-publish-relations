@@ -7,11 +7,17 @@ CursorMethods = function (sub, handlers, _id, collection) {
 };
 
 CursorMethods.prototype.observe = function (cursor, callbacks) {
-	this.handler.add(cursor._getCollectionName(), cursor.observe(callbacks));
+	this.handler.add(cursor, {
+		handler: 'observe',
+		callbacks: callbacks
+	});
 };
 
 CursorMethods.prototype.observeChanges = function (cursor, callbacks) {
-	this.handler.add(cursor._getCollectionName(), cursor.observeChanges(callbacks));
+	this.handler.add(cursor, {
+		handler: 'observeChanges',
+		callbacks: callbacks
+	});
 };
 
 CursorMethods.prototype.cursor = function (cursor, collection, callbacks) {
@@ -21,11 +27,10 @@ CursorMethods.prototype.cursor = function (cursor, collection, callbacks) {
 		callbacks = collection;
 		collection = cursor._getCollectionName();
 	}
-	
-	var handler = this.handler.add(collection);
 
-	if (!cursor)
-		throw new Error("you're not sending the cursor");
+	var handler = this.handler.add(cursor, {collection: collection});
+	if (handler.equalSelector)
+		return handler;
 
 	if (callbacks)
 		callbacks = this._getCallbacks(callbacks);
@@ -34,7 +39,7 @@ CursorMethods.prototype.cursor = function (cursor, collection, callbacks) {
 		var cb = callbacks && callbacks[method];
 
 		if (cb) {
-			var methods = new CursorMethods(sub, handler.add(id), id, collection);
+			var methods = new CursorMethods(sub, handler.addBasic(id), id, collection);
 			var isChanged = method === 'changed';
 
 			return cb.call(methods, id, doc, isChanged) || doc;
@@ -65,31 +70,34 @@ CursorMethods.prototype.cursor = function (cursor, collection, callbacks) {
 // changes to the document are sent to the main document with the return of the callbacks
 CursorMethods.prototype.changeParentDoc = function (cursor, callbacks, onRemoved) {
 	var sub = this.sub,
-		_id = this._id,
-		collection = this.collection,
-		result = {};
+	_id = this._id,
+	collection = this.collection,
+	result = this;
 
 	if (!_id) return;
 	
 	callbacks = this._getCallbacks(callbacks, onRemoved);
 
-	this.handler.add(cursor._getCollectionName(), cursor.observeChanges({
-		added: function (id, doc) {
-			result = callbacks.added(id, doc);
-		},
-		changed: function (id, doc) {
-			var changes = callbacks.changed(id, doc);
-			if (changes)
-				sub.changed(collection, _id, changes);
-		},
-		removed: function (id) {
-			var changes = callbacks.removed(id);
-			if (changes)
-				sub.changed(collection, _id, changes);
+	this.handler.add(cursor, {
+		handler: 'observeChanges',
+		callbacks: {
+			added: function (id, doc) {
+				result._addedWithCPD = callbacks.added(id, doc);
+			},
+			changed: function (id, doc) {
+				var changes = callbacks.changed(id, doc);
+				if (changes)
+					sub.changed(collection, _id, changes);
+			},
+			removed: function (id) {
+				var changes = callbacks.removed(id);
+				if (changes)
+					sub.changed(collection, _id, changes);
+			}
 		}
-	}));
+	});
 
-	return result;
+	return result._addedWithCPD || {};
 };
 // designed to paginate a list, works in conjunction with the methods
 // do not call back to the main callback, only the array is changed in the collection
@@ -125,7 +133,7 @@ CursorMethods.prototype.paginate = function (fieldData, limit, infinite) {
 		}
 	});
 
-	this.handler.add(field, listener);
+	this.handler.addBasic(field, listener);
 
 	return fieldData[field];
 };
