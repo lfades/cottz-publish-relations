@@ -66,9 +66,9 @@ Meteor.publishRelations('author', function (authorId) {
       this.cursor(Comments.find({bookId: id}));
     });
     
-    doc.profile = this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
+    _.extend(doc, this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
       return profile;
-    });
+    }));
   });
   
   return this.ready();
