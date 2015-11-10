@@ -23,12 +23,19 @@ function configure (api) {
   api.versionsFrom('1.1.0.2');
 
   api.use('underscore', 'server');
+  api.use('check');
+  api.use('ddp');
 
   api.addFiles([
-    'publish_relations.js',
-    'cursor_methods.js',
-    'cursor_utils.js',
-    'handler_controller.js',
-    'methods.js'
+    'lib/server/publish_relations.js',
+    'lib/server/handler_controller.js',
+    'lib/server/methods.js',
+
+    'lib/server/cursor/cursor.js',
+    'lib/server/cursor/utils.js',
+    'lib/server/cursor/observe.js',
+    'lib/server/cursor/join.js',
+    'lib/server/cursor/crossbar.js',
+    'lib/server/cursor/change_parent_doc.js'
   ], 'server');
 };
