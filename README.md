@@ -36,54 +36,12 @@ Assuming we have the following collections
   text: 'This book is better than meteor for pros :O'
 }
 ```
-I want publish the autor with his books
-```js
-Meteor.publishRelations('author', function (authorId) {
-  this.cursor(Authors.find(authorId), function (id, doc) {
-    this.cursor(Books.find({authorId: id}));
-  });
-  
-  return this.ready();
-});
-```
-and comments of the books
+I want publish the autor with his books and comments of the books and I want to show only some interests of the author
 ```js
 Meteor.publishRelations('author', function (authorId) {
   this.cursor(Authors.find(authorId), function (id, doc) {
     this.cursor(Books.find({authorId: id}), function (id, doc) {
       this.cursor(Comments.find({bookId: id}));
-    });
-  });
-  
-  return this.ready();
-});
-```
-I also want to bring the profile of the author but within the author not apart
-```js
-Meteor.publishRelations('author', function (authorId) {
-  this.cursor(Authors.find(authorId), function (id, doc) {
-    this.cursor(Books.find({authorId: id}), function (id, doc) {
-      this.cursor(Comments.find({bookId: id}));
-    });
-    
-    _.extend(doc, this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
-      return profile;
-    }));
-  });
-  
-  return this.ready();
-});
-```
-To finish I want to show only some interests of the author
-```js
-Meteor.publish('author', function (authorId) {
-  this.cursor(Authors.find(authorId), function (id, doc) {
-    this.cursor(Books.find({authorId: id}), function (id, doc) {
-      this.cursor(Comments.find({bookId: id}));
-    });
-    
-    doc.profile = this.changeParentDoc(Profiles.find(doc.profile), function (profileId, profile) {
-      return profile;
     });
     
     doc.interests = this.paginate({interests: doc.interests}, 5);
@@ -93,9 +51,10 @@ Meteor.publish('author', function (authorId) {
 });
 // Client
 // skip 5 interest and show the next 5
-Meteor.call('changePagination', 'authorId', 'interests', 5);
+PublishRelations.changePag({_id: 'authorId', field: 'interests', skip: 5});
 ```
-## API
+Note: The above code is very nice and works correctly, but I recommend that you read the Performance Notes
+## Main API
 to use the following methods you should use `Meteor.publishRelations` instead of `Meteor.publish`
 
 ### this.cursor (cursor, collection, callbacks(id, doc, changed))
@@ -104,24 +63,106 @@ publishes a cursor, `collection` is not required
 * **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
 * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
 
+### this.join (Collection, options, name)
+It allows you to collect a lot of _ids and then make a single query, only Collection is required.
+*** Collection** is the Mongo Collection to be used
+*** options** the options parameter in a Collection.find
+***name** the name of a different collection to receive documents there
+
+After creating an instance of `this.join` you can do the following
+```js
+let comments = this.join(Comments, {});
+// default query is {_id: _id} or {_id: {$in: _ids}}
+// if you need to use another field use selector
+comments.selector = function (_ids) {
+  // _ids is {_id: {$in: _ids}} or a single _id
+  return {bookId: _ids};
+};
+// Adds a new id to the query
+comments.push(this, id);
+// Sends the query to the client, after sending the query each new push()
+// send a new query, you do not have to worry about reactivity or
+// performance with this method
+comments.send(this);
+```
+Why use this and not `this.cursor`? because they are just 2 queries
+```js
+let comments = this.join(Comments, {});
+comments.selector = _ids => {bookId: _ids};
+
+this.cursor(Books.find(), function (id, doc) {
+  comments.push(this, id);
+});
+
+comments.send(this);
+```
+
+
 ### this.observe / this.observeChanges (cursor, callbacks)
 observe or observe changes in a cursor without sending anything to the client, callbacks are the same as those used by meteor
 
-### this.changeParentDoc (callbacks, onRemoved)
-designed to change something in the document with the return of the `callbacks`.
-* **callbacks** is an object with `added``changed``removed` or a function that executes when it is added and changed
-* **onRemoved** is a function that executes when is removed, is not used if callbacks is an object
+## Nonreactive API
+The following methods work much like their peers but they are not reactive
+
+### this.cursorNonreactive (cursor, collection, callback)
+It has 2 differences with `this.cursor`
+- `callback` is only a function that executes when a document is added
+-   you can only use non-reactive methods within the callback
+
+### this.joinNonreactive (Collection, options, name)
+The only difference with `this.join` is that you don't need to use `this` inside `push()` and `send()`
+
+## Crossbar API
+The following methods use `Meteor Crossbar` which allows the client to communicate with a publication without re-run the publication
 
 ### this.paginate (field, limit, infinite)
 page within an array without re run the publication or callback
+
 * returns the paginated array, be sure to change it in the document
 * **field** is an object where the key is the field in the document and the value an array
 * **limit** the total number of values in the array to show
 * **infinite** if true the above values are not removed when the paging is increased
-* **Meteor.call('changePagination', _id, field, skip)** change the pagination of the document with that `id` and `field`. skip is the number of values to skip
+* **PublishRelations.changePag({_id, field, skip})** change the pagination of the document with that `id` and `field`. `skip` is the number of values to skip.
+
+### this.listen (data, callback, run)
+It allows you to execute a part of the publication when the client asks for it. It is easier to explain with an example
+```js
+Meteor.publishRelations('books', function (data) {
+  let pattern = {
+    authorId: String,
+    skip: Match.Integer
+  };
+  check(data, pattern);
+
+  if (!this.userId || !Meteor.users.findOne({_id: this.userId}))
+    return this.ready();
+  // Maybe you have roles or another validations here
+
+  this.listen(data, function (runBeforeReady) {
+    if (!runBeforeReady)
+      check(data, pattern);
+   
+    this.cursor(Books.find({authorId: data.authorId}, {
+      limit: 10,
+      skip: data.skip
+    }));
+  });
+  
+  return this.ready();
+});
+
+// -- client --
+Meteor.subscribe('books');
+// skip 10 books and show the next 10
+PublishRelations.fire('books', {authorId: 'authorId', skip: 10});
+```
+each time that you use `PublishRelations.fire` the listen callback is rerun, the param `data` that you sent in listen extends with the data sent in the `fire` event
+- `run` is a boolean value (default true). if true `callback` is executed immediately within the publication before the first `fire`
+- `callback` only receives the boolean parameter `runBeforeReady` that is only true when `run` is true and the `callback` runs for first time
+-  you can have only one `listen` by publication
 
 ## Performance Notes
-* all cursors returns an object with the stop() method except for changeParentDoc and paginate
+* all methods returns an object with the stop() method except for paginate
 * all cursors are stopped when the publication stop
 * when the parent cursor is stopped or a document with cursors is removed all related cursors are stopped
 * all cursors use basic observeChanges as meteor does by default, performance does not come down
@@ -150,15 +191,30 @@ this.cursor(Meteor.users.find(), {
   }
 });
 ```
-* when a document is changed and you call a method again with the same selector when the document was added it doesn't run again
+* As I said in Quick Start you can do this
 ```js
 this.cursor(Authors.find(authorId), function (id, doc) {
-  // the books cursor is executed only when the author is added, because each time that the author
-  // is changed the authorId will be ever the same
-  this.cursor(Books.find({authorId: id}));
-  
-  /* more logic */
+  this.cursor(Books.find({authorId: id}), function (id, doc) {
+    this.cursor(Comments.find({bookId: id}));
+  });
 });
+```
+but you will find that the publication is becoming increasingly slow, suppose you have 10 books for a given author and every book has 100 reviews, with this method would make the following queries:
+1 author + 1 books + 10 comments = 12 queries, for each book found a query is made to find comments which creates a performance issue and publication could take seconds
+
+The solution is to use `this.join` to join all the comments and send them in a single query, passing from 12 queries to 3 queries for mongo
+```js
+let comments = this.join(Comments);
+comments.selector = _ids => {bookId: _ids};
+
+this.cursor(Authors.find(authorId), function (id, doc) {
+  // We not have to worry about the books cursor because we only have one author
+  this.cursor(Books.find({authorId: id}), function (id, doc) {
+    comments.push(this, id);
+  });
+});
+
+comments.send(this);
 ```
 * publications are completed as usual
 ```js
