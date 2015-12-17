@@ -65,9 +65,9 @@ publishes a cursor, `collection` is not required
 
 ### this.join (Collection, options, name)
 It allows you to collect a lot of _ids and then make a single query, only Collection is required.
-*** Collection** is the Mongo Collection to be used
-*** options** the options parameter in a Collection.find
-***name** the name of a different collection to receive documents there
+* **Collection** is the Mongo Collection to be used
+* **options** the options parameter in a Collection.find
+* **name** the name of a different collection to receive documents there
 
 After creating an instance of `this.join` you can do the following
 ```js
