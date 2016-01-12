@@ -79,11 +79,11 @@ comments.selector = function (_ids) {
   return {bookId: _ids};
 };
 // Adds a new id to the query
-comments.push(this, id);
+comments.push(id);
 // Sends the query to the client, after sending the query each new push()
 // send a new query, you do not have to worry about reactivity or
 // performance with this method
-comments.send(this);
+comments.send();
 ```
 Why use this and not `this.cursor`? because they are just 2 queries
 ```js
@@ -91,10 +91,10 @@ let comments = this.join(Comments, {});
 comments.selector = _ids => {bookId: _ids};
 
 this.cursor(Books.find(), function (id, doc) {
-  comments.push(this, id);
+  comments.push(id);
 });
 
-comments.send(this);
+comments.send();
 ```
 
 
@@ -110,7 +110,7 @@ It has 2 differences with `this.cursor`
 -   you can only use non-reactive methods within the callback
 
 ### this.joinNonreactive (Collection, options, name)
-The only difference with `this.join` is that you don't need to use `this` inside `push()` and `send()`
+Is exactly the same as `this.join` but non reactive
 
 ## Crossbar API
 The following methods use `Meteor Crossbar` which allows the client to communicate with a publication without re-run the publication
@@ -210,11 +210,11 @@ comments.selector = _ids => {bookId: _ids};
 this.cursor(Authors.find(authorId), function (id, doc) {
   // We not have to worry about the books cursor because we only have one author
   this.cursor(Books.find({authorId: id}), function (id, doc) {
-    comments.push(this, id);
+    comments.push(id);
   });
 });
 
-comments.send(this);
+comments.send();
 ```
 * publications are completed as usual
 ```js
