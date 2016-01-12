@@ -80,6 +80,7 @@ comments.selector = function (_ids) {
 };
 // Adds a new id to the query
 comments.push(id);
+comments.push(id2, id3, id4);
 // Sends the query to the client, after sending the query each new push()
 // send a new query, you do not have to worry about reactivity or
 // performance with this method
