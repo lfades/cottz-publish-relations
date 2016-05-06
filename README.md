@@ -38,7 +38,9 @@ Assuming we have the following collections
 ```
 I want publish the autor with his books and comments of the books and I want to show only some interests of the author
 ```js
-Meteor.publishRelations('author', function (authorId) {
+import PublishRelations from 'meteor/cottz:publish-relations';
+
+PublishRelations('author', function (authorId) {
   this.cursor(Authors.find(authorId), function (id, doc) {
     this.cursor(Books.find({authorId: id}), function (id, doc) {
       this.cursor(Comments.find({bookId: id}));
@@ -55,7 +57,7 @@ PublishRelations.changePag({_id: 'authorId', field: 'interests', skip: 5});
 ```
 Note: The above code is very nice and works correctly, but I recommend that you read the Performance Notes
 ## Main API
-to use the following methods you should use `Meteor.publishRelations` instead of `Meteor.publish`
+to use the following methods you should use `PublishRelations` instead of `Meteor.publish`
 
 ### this.cursor (cursor, collection, callbacks(id, doc, changed))
 publishes a cursor, `collection` is not required
@@ -71,7 +73,7 @@ It allows you to collect a lot of _ids and then make a single query, only Collec
 
 After creating an instance of `this.join` you can do the following
 ```js
-let comments = this.join(Comments, {});
+const comments = this.join(Comments, {});
 // default query is {_id: _id} or {_id: {$in: _ids}}
 // if you need to use another field use selector
 comments.selector = function (_ids) {
@@ -88,7 +90,7 @@ comments.send();
 ```
 Why use this and not `this.cursor`? because they are just 2 queries
 ```js
-let comments = this.join(Comments, {});
+const comments = this.join(Comments, {});
 comments.selector = _ids => {bookId: _ids};
 
 this.cursor(Books.find(), function (id, doc) {
@@ -97,8 +99,6 @@ this.cursor(Books.find(), function (id, doc) {
 
 comments.send();
 ```
-
-
 ### this.observe / this.observeChanges (cursor, callbacks)
 observe or observe changes in a cursor without sending anything to the client, callbacks are the same as those used by meteor
 
@@ -108,7 +108,7 @@ The following methods work much like their peers but they are not reactive
 ### this.cursorNonreactive (cursor, collection, callback)
 It has 2 differences with `this.cursor`
 - `callback` is only a function that executes when a document is added
--   you can only use non-reactive methods within the callback
+- you can only use non-reactive methods within the callback
 
 ### this.joinNonreactive (Collection, options, name)
 Is exactly the same as `this.join` but non reactive
@@ -128,8 +128,10 @@ page within an array without re run the publication or callback
 ### this.listen (data, callback, run)
 It allows you to execute a part of the publication when the client asks for it. It is easier to explain with an example
 ```js
-Meteor.publishRelations('books', function (data) {
-  let pattern = {
+import PublishRelations from 'meteor/cottz:publish-relations';
+
+PublishRelations('books', function (data) {
+  const pattern = {
     authorId: String,
     skip: Match.Integer
   };
@@ -205,7 +207,7 @@ but you will find that the publication is becoming increasingly slow, suppose yo
 
 The solution is to use `this.join` to join all the comments and send them in a single query, passing from 12 queries to 3 queries for mongo
 ```js
-let comments = this.join(Comments);
+const comments = this.join(Comments);
 comments.selector = _ids => {bookId: _ids};
 
 this.cursor(Authors.find(authorId), function (id, doc) {

@@ -1,42 +1,36 @@
 Package.describe({
   name: 'cottz:publish-relations',
-  summary: "Edit your documents before sending without too much stress",
-  version: "2.0.3",
-  git: "https://github.com/Goluis/cottz-publish-relations"
+  summary: 'Edit your documents before sending without too much stress',
+  version: '2.0.5',
+  git: 'https://github.com/Goluis/cottz-publish-relations',
+  documentation: 'README.md'
 });
 
 Package.onUse(function (api) {
-  configure(api);
+  api.versionsFrom('1.3.2.4');
+
+  api.use([
+    'ecmascript',
+    'check',
+    'ddp-server',
+    'underscore'
+  ]);
+
+  api.mainModule('lib/client/publish_relations.js', 'client');
+  api.mainModule('lib/server/index.js', 'server');
+
+  api.export('PublishRelations', 'server');
 });
 
-Package.on_test(function (api) {
-  configure(api);
+Package.onTest(function (api) {
+  api.use([
+    'ecmascript',
+    'tinytest',
+    'random',
+    'mongo',
+    'ddp',
+    'cottz:publish-relations'
+  ]);
 
-  api.use(['ecmascript', 'tinytest', 'random', 'underscore']);
-
-  api.addFiles('tests/data.js', 'server');
-  api.addFiles('tests/basic.js', 'server');
-  api.addFiles('tests/cursor_methods.js', 'server');
+  api.mainModule('tests/index.js');
 });
-
-function configure (api) {
-  api.versionsFrom('1.2.1');
-
-  api.use(['ecmascript', 'check', 'ddp', 'underscore']);
-
-  api.addFiles([
-    'lib/server/publish_relations.js',
-    'lib/server/handler_controller.js',
-    'lib/server/methods.js',
-
-    'lib/server/cursor/nonreactive/cursor.js',
-    'lib/server/cursor/nonreactive/join.js',
-    
-    'lib/server/cursor/cursor.js',
-    'lib/server/cursor/utils.js',
-    'lib/server/cursor/observe.js',
-    'lib/server/cursor/join.js',
-    'lib/server/cursor/crossbar.js',
-    'lib/server/cursor/change_parent_doc.js'
-  ], 'server');
-};
