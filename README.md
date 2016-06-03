@@ -45,10 +45,10 @@ PublishRelations('author', function (authorId) {
     this.cursor(Books.find({authorId: id}), function (id, doc) {
       this.cursor(Comments.find({bookId: id}));
     });
-    
+
     doc.interests = this.paginate({interests: doc.interests}, 5);
   });
-  
+
   return this.ready();
 });
 // Client
@@ -141,22 +141,24 @@ PublishRelations('books', function (data) {
     return this.ready();
   // Maybe you have roles or another validations here
 
-  this.listen(data, function (runBeforeReady) {
+  // If inside this.listen you'll use this, make sure to use an arrow function
+  this.listen(data, (runBeforeReady) => {
     if (!runBeforeReady)
       check(data, pattern);
-   
+
     this.cursor(Books.find({authorId: data.authorId}, {
       limit: 10,
       skip: data.skip
     }));
   });
-  
+
   return this.ready();
 });
 
 // -- client --
 Meteor.subscribe('books');
 // skip 10 books and show the next 10
+// the second param must be an object
 PublishRelations.fire('books', {authorId: 'authorId', skip: 10});
 ```
 each time that you use `PublishRelations.fire` the listen callback is rerun, the param `data` that you sent in listen extends with the data sent in the `fire` event
@@ -177,7 +179,7 @@ this.cursor(Meteor.users.find(), function (id, doc) {
   // this function is executed on added/changed
   this.cursor(Rooms.find({_id: doc.roomId}));
 });
-// the previous cursor is good but has a bug, when an user is changed we can't make sure 
+// the previous cursor is good but has a bug, when an user is changed we can't make sure
 // that the roomId is changed and 'doc' only comes with the changes, so roomId is undefined
 // and our Rooms cursor no longer work anymore
 
