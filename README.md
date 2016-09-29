@@ -77,7 +77,7 @@ const comments = this.join(Comments, {});
 // default query is {_id: _id} or {_id: {$in: _ids}}
 // if you need to use another field use selector
 comments.selector = function (_ids) {
-  // _ids is {_id: {$in: _ids}} or a single _id
+  // _ids is {$in: _ids} or a single _id
   return {bookId: _ids};
 };
 // Adds a new id to the query
@@ -156,7 +156,7 @@ PublishRelations('books', function (data) {
 });
 
 // -- client --
-Meteor.subscribe('books');
+Meteor.subscribe('books', {authorId: 'authorId', skip: 0});
 // skip 10 books and show the next 10
 // the second param must be an object
 PublishRelations.fire('books', {authorId: 'authorId', skip: 10});
