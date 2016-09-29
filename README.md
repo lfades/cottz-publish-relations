@@ -65,6 +65,9 @@ publishes a cursor, `collection` is not required
 * **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
 * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
 
+> **Note:**
+> when a document changes (update) **doc** contains only the changes, not the whole document.
+
 ### this.join (Collection, options, name)
 It allows you to collect a lot of _ids and then make a single query, only Collection is required.
 * **Collection** is the Mongo Collection to be used
