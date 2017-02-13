@@ -3,7 +3,7 @@ import { Mongo } from 'meteor/mongo';
 import { Random } from 'meteor/random';
 import PublishRelations from 'meteor/cottz:publish-relations';
 import { data, Client } from './data';
-console.log('komo ?')
+
 Tinytest.addAsync('Cursor', function (test, done) {
   var quotes = new Mongo.Collection(Random.id()),
     publish = Random.id(),
@@ -71,6 +71,6 @@ Tinytest.addAsync('Observes', function (test, done) {
     client2.disconnect();
     done();
   };
-  
+
   client2.subscribe(publish2);
 });
