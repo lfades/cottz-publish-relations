@@ -65,6 +65,9 @@ publishes a cursor, `collection` is not required
 * **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
 * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
 
+> **Note:**
+> when a document changes (update) **doc** contains only the changes, not the whole document.
+
 ### this.join (Collection, options, name)
 It allows you to collect a lot of _ids and then make a single query, only Collection is required.
 * **Collection** is the Mongo Collection to be used
@@ -77,7 +80,7 @@ const comments = this.join(Comments, {});
 // default query is {_id: _id} or {_id: {$in: _ids}}
 // if you need to use another field use selector
 comments.selector = function (_ids) {
-  // _ids is {_id: {$in: _ids}} or a single _id
+  // _ids is {$in: _ids} or a single _id
   return {bookId: _ids};
 };
 // Adds a new id to the query
@@ -156,7 +159,7 @@ PublishRelations('books', function (data) {
 });
 
 // -- client --
-Meteor.subscribe('books');
+Meteor.subscribe('books', {authorId: 'authorId', skip: 0});
 // skip 10 books and show the next 10
 // the second param must be an object
 PublishRelations.fire('books', {authorId: 'authorId', skip: 10});
