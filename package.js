@@ -1,7 +1,7 @@
 Package.describe({
   name: 'cottz:publish-relations',
   summary: 'Edit your documents before sending without too much stress',
-  version: '2.0.6',
+  version: '2.0.7',
   git: 'https://github.com/Goluis/cottz-publish-relations',
   documentation: 'README.md'
 });

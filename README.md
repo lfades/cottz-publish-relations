@@ -62,7 +62,7 @@ to use the following methods you should use `PublishRelations` instead of `Meteo
 ### this.cursor (cursor, collection, callbacks(id, doc, changed))
 publishes a cursor, `collection` is not required
 * **collection** is the collection where the cursor will be sent. if not sent, is the default cursor collection name
-* **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and received in third parameter a Boolean value that indicates if is changed
+* **callbacks** is an object with 3 functions (added, changed, removed) or a function that is called when it is added and changed and receive in third parameter a Boolean value that indicates if is changed
 * If you send `callbacks` you can use all the methods again and you can edit the document directly (doc.property = 'some') or send it in the return.
 
 > **Note:**
