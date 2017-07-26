@@ -1,13 +1,13 @@
 Package.describe({
   name: 'cottz:publish-relations',
   summary: 'Edit your documents before sending without too much stress',
-  version: '2.0.7',
+  version: '2.0.8',
   git: 'https://github.com/Goluis/cottz-publish-relations',
   documentation: 'README.md'
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom('1.3.2.4');
+  api.versionsFrom('1.5.1');
 
   api.use([
     'ecmascript',
